@@ -1,0 +1,6 @@
+# >>> ARQUIVO RECRIADO EM 18/11 — Req. 2: lista de máquinas/origens bloqueadas
+# Uma máquina por linha. Linhas que começam com # são comentários.
+# Nomes fictícios, criados pelo grupo para testar a regra de bloqueio.
+EXTERNO-01
+NOTEBOOK-VISITANTE
+LAB-99

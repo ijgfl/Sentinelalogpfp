@@ -31,11 +31,11 @@ O `.env` está no `.gitignore`: **nunca envie a chave para o GitHub nem mostre n
 | --- | --- |
 | 1. CRUD de usuários e registro de acessos | Pronto |
 | 2. Análise de risco do acesso | Pronto |
-| 3. Detecção de máquina compartilhada | A fazer |
-| 4. Registro de auditoria | Gravação pronta; falta a consulta pelo menu |
+| 3. Detecção de máquina compartilhada | Pronto (opção 3) |
+| 4. Registro de auditoria | Pronto: gravação e consulta pelo menu (opção 4) |
 | 5. Armazenamento em arquivos | Pronto para usuários, acessos e auditoria |
-| 6. Relatório de segurança | A fazer |
-| 7. Funcionalidade extra | A fazer |
+| 6. Relatório de segurança | Pronto (opção 5), com exportação em `.txt` |
+| 7. Funcionalidade extra | Pronto: simulação de acessos (opção 6) e gráfico por hora no relatório |
 | Módulo de IA | Integrado na opção 7 (critérios a confirmar com os professores) |
 
 ## Como usar
@@ -54,6 +54,26 @@ O `.env` está no `.gitignore`: **nunca envie a chave para o GitHub nem mostre n
 - **Ver detalhes:** mostra um acesso pelo ID, com todos os motivos da classificação.
 
 Acessos **não podem ser editados nem excluídos**.
+
+<!-- >>> NOVO EM 18/11: seções das opções 3, 4, 5 e 6 do menu <<< -->
+**Menu principal → 3. Máquinas compartilhadas**
+
+Agrupa os acessos com sucesso por máquina e mostra um alerta para cada máquina usada por mais de um usuário, com o nome e a matrícula mascarada de cada um e quantas vezes usou. Só contam acessos com sucesso, porque uma tentativa que falhou não chegou a usar a máquina.
+
+**Menu principal → 4. Log de auditoria**
+
+Mostra os 30 registros mais recentes, o log completo ou só uma operação (ex.: `REVELAR_MATRICULA`). A matrícula afetada aparece mascarada. Consultar o log também fica registrado (`CONSULTAR_AUDITORIA`).
+
+**Menu principal → 5. Relatório de segurança**
+
+Total de acessos, falhas (com %), quantos foram normais, suspeitos e críticos, os 5 usuários com mais falhas, os 3 horários de mais movimento, um gráfico de barras em texto com o movimento por hora (horas com `*` estão fora do funcionamento 7h–22h), acessos de máquinas bloqueadas e máquinas compartilhadas. No fim, dá para exportar o relatório para `dados/relatorio_AAAAMMDD_HHMMSS.txt` (só com matrículas mascaradas).
+
+**Menu principal → 6. Simulação de acessos (funcionalidade extra)**
+
+Gera de 1 a 50 acessos aleatórios nos últimos 7 dias e classifica cada um com as mesmas regras de `risco.py`. A simulação força alguns casos de risco (madrugada, máquina bloqueada, máquina desconhecida, matrícula inexistente, falhas) para testar as regras. Depois de ver o resultado, você escolhe:
+
+- **não gravar** (modo só testar): nada muda nos arquivos;
+- **gravar**: os acessos vão para `acessos.csv`. Como acessos não podem ser apagados, o sistema pede confirmação e registra na auditoria a operação `SIMULAR_ACESSOS` com a faixa de IDs gerados. Assim dá para saber quais acessos são simulados.
 
 **Menu principal → 7. Assistente de IA**
 
@@ -86,7 +106,11 @@ Os pesos estão em constantes no início de `risco.py` e podem ser ajustados sem
 
 - **Acessos não são editáveis:** o arquivo `acessos.csv` só recebe linhas novas (modo `"a"`). Se desse para editar, quem invadiu uma conta poderia apagar o próprio rastro.
 - **Matrícula mascarada:** só aparece completa quando alguém pede, e esse pedido fica no log. Mostramos o dado completo só quando é preciso.
-- **Auditoria:** cadastrar, editar, excluir, revelar matrícula e registrar acesso ficam em `dados/auditoria.log`, com data e hora. Quem usa o sistema também precisa ser monitorado.
+- **Auditoria:** cadastrar, editar, excluir, revelar matrícula, registrar acesso, consultar máquinas compartilhadas, gerar/exportar relatório, simular acessos e consultar o próprio log ficam em `dados/auditoria.log`, com data e hora. Quem usa o sistema também precisa ser monitorado: quem tem acesso aos dados de todos também pode abusar dele, e sem registro ninguém saberia.
+- **Simulação separada dos dados reais:** o padrão é só testar, sem gravar. Gravar pede confirmação e fica na auditoria com os IDs, porque acessos não podem ser apagados depois.
+- **Relatório exportado:** o arquivo `.txt` pode sair do computador (e-mail, impressão), por isso só tem matrículas mascaradas.
+- **Entradas tratadas:** `;` e quebras de linha não chegam aos arquivos; no cadastro e na edição de usuários, um dado inválido cancela a operação e mostra o motivo; nos outros menus, números, máquinas e datas inválidos são pedidos de novo; datas no futuro são recusadas; linhas mal formatadas nos arquivos são ignoradas com aviso.
+- **Log de auditoria só cresce:** o `auditoria.log` também é gravado só no modo `"a"` e o sistema não tem nenhuma opção para editar ou apagar registros dele.
 - **Assistente de IA envia só o necessário:** o texto é montado pelo próprio sistema, com nome, perfil, horário permitido, máquina, resultado e classificação. Matrículas e observações (texto livre digitado por pessoas) não saem do computador. Cada pergunta é registrada na auditoria. A resposta da IA é uma ajuda, não substitui a classificação feita pelas regras.
 
 ### Segurança do assistente de IA
@@ -106,15 +130,25 @@ O `agente.py` junta os dados e a pergunta num único texto. Por isso, um texto d
 **Risco que continua:** um nome cadastrado ainda pode conter palavras como "ignore as regras". O filtro tira a pontuação e limita o tamanho, mas nenhum filtro impede 100% a injeção de prompt. Por isso a IA só informa e nunca decide.
 
 **Cuidados do grupo:** cada um usa a própria chave; ninguém abre o `.env` na tela durante a apresentação; antes do primeiro `git push`, rodar `git status` e conferir que o `.env` não aparece; se a chave vazar, apague-a em https://console.groq.com/keys e crie outra; instalar exatamente `pip install groq` (nome oficial).
-- **Entradas tratadas:** `;` e quebras de linha digitados são removidos para não corromper os arquivos; números, horários e datas inválidos são pedidos de novo; datas no futuro são recusadas; linhas mal formatadas nos arquivos são ignoradas com aviso.
 
 ### O que o sistema não detecta
 
 - Senha roubada usada dentro do horário permitido, numa máquina normal.
 - Usuário autorizado agindo de má-fé dentro das regras.
-- Alteração dos arquivos `.csv` direto, por fora do programa.
+- Alteração dos arquivos da pasta `dados/` (inclusive o `auditoria.log`) direto, por fora do programa, num editor de texto.
+- Diferença entre acesso real e simulado depois de gravado: só a auditoria (`SIMULAR_ACESSOS`) diz quais IDs vieram da simulação.
 - Nome de máquina falsificado.
 - Acessos que nunca foram registrados no sistema.
+
+## Restrições
+
+- Python 3.8 ou mais recente, usado pelo terminal. Uma pessoa por vez: não há login nem uso simultâneo.
+- Datas no formato `dd/mm/aaaa hh:mm`, sem datas no futuro. Horário permitido no formato `HH:MM-HH:MM`, com o fim depois do início.
+- Matrícula: letras e números, mínimo 4, não pode ser alterada depois. Nome: só letras, espaço, hífen e apóstrofo, até 60 caracteres. Máquina: letras, números e hífen, até 20 caracteres; as do laboratório vão de `LAB-01` a `LAB-30`.
+- Acessos e registros de auditoria não podem ser editados nem excluídos pelo sistema.
+- Simulação: de 1 a 50 acessos por vez.
+- Assistente de IA: precisa de internet, da biblioteca `groq` e de uma chave no `.env`; analisa os 150 acessos mais recentes.
+- Todos os dados são fictícios.
 
 ## Estrutura
 
@@ -126,6 +160,10 @@ usuarios.py     CRUD de usuários e máscara de matrícula
 acessos.py      registro e consulta de acessos
 risco.py        regras de classificação de risco
 auditoria.py    gravação do log de auditoria
+consulta_auditoria.py  consulta do log pelo menu (opção 4)
+maquinas.py     detecção de máquinas compartilhadas (opção 3)
+relatorio.py    relatório de segurança, gráfico por hora e exportação (opção 5)
+simulacao.py    simulação de acessos aleatórios (opção 6)
 assistente_ia.py  monta os dados e conversa com o agente
 agente.py       módulo do agente entregue em aula (não alterar)
 .env.example    modelo do arquivo da chave (o .env real não vai para o GitHub)
@@ -134,9 +172,10 @@ dados/
   acessos.csv     id;matricula;data_hora;maquina;resultado;classificacao;pontos;motivos
   auditoria.log   data_hora;operacao;matricula_afetada;detalhe
   bloqueadas.txt  uma máquina por linha; linhas com # são comentários
+  relatorio_*.txt relatórios exportados pela opção 5
 ```
 
-Bibliotecas usadas: `os` e `datetime`, ambas permitidas, e `groq` apenas dentro de `agente.py` (exceção autorizada para o módulo de IA).
+Bibliotecas usadas: `os`, `datetime` e `random` (só na simulação), todas permitidas, e `groq` apenas dentro de `agente.py` (exceção autorizada para o módulo de IA).
 
 ## Roteiro de demonstração (requisitos 1 e 2)
 
@@ -146,5 +185,13 @@ Bibliotecas usadas: `os` e `datetime`, ambas permitidas, e `groq` apenas dentro 
 4. **Acessos → Registrar:** Carlos Lima (`20250002`), `LAB-05`, sucesso, `03/11/2026 03:00` → **crítico**, com os dois motivos.
 5. Registrar 3 falhas seguidas de Beatriz Rocha (`20250003`) em `LAB-10` → a terceira fica **crítica**.
 6. Registrar matrícula `99999` na máquina `EXTERNO-01` → alerta de máquina bloqueada.
-7. Registrar Diego Alves (`20250004`), `LAB-20`, sucesso, `04/11/2026 15:00` → **normal**.
+7. Registrar Diego Alves (`20250004`), `LAB-05`, sucesso, `18/11/2026 15:00` → **normal**.
 8. **Consultar por classificação → Crítico** e **Ver detalhes** de um acesso.
+
+<!-- >>> NOVO EM 18/11: roteiro dos requisitos 3, 4, 6 e 7 <<< -->
+## Roteiro de demonstração (requisitos 3, 4, 6 e 7)
+
+9. **Máquinas compartilhadas:** depois dos passos 4 e 7, `LAB-05` aparece usada por Carlos Lima e Diego Alves.
+10. **Simulação:** gerar 20 acessos, ver os motivos de um crítico e gravar.
+11. **Relatório de segurança:** mostrar totais, ranking de falhas, gráfico por hora e exportar para `.txt`.
+12. **Log de auditoria:** filtrar por `REVELAR_MATRICULA` e mostrar que a consulta do passo 2 ficou registrada, e que `SIMULAR_ACESSOS` mostra os IDs simulados.

@@ -30,7 +30,7 @@ def ler_registros(nome_arquivo, cabecalho):
         print(f"Erro ao ler o arquivo {nome_arquivo}: {erro}")
         return registros
 
-    #linhas[0] é o cabeçalho os dados começam na linha 2 do arquivo
+
     for numero_linha in range(1, len(linhas)):
         linha = linhas[numero_linha].strip()
         if linha == "":

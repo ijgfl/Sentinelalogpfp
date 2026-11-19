@@ -98,7 +98,7 @@ def registrar_acesso():
         mostrar_classificacao(classificacao, pontos, motivos)
 
 
-#Consultar
+
 
 def imprimir_tabela_acessos(acessos):
     if not acessos:

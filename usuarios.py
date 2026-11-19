@@ -1,4 +1,3 @@
-"""feito por karla e corrigido pelo claude"""
 from arquivos import ler_registros, salvar_registros
 from auditoria import registrar_auditoria
 

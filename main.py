@@ -6,6 +6,17 @@ from risco import ARQUIVO_BLOQUEADAS
 from usuarios import menu_crud, ARQUIVO_USUARIOS, CAMPOS_USUARIO
 from utils import limpar_tela, pausar, ler_opcao
 
+# ##########################################################################
+# ##   >>> NOVO EM 18/11 — imports das opções 3, 4, 5 e 6 do menu         ##
+# ##   Cada requisito novo ficou no próprio arquivo, para o código não    ##
+# ##   virar um arquivo gigante e cada pessoa do grupo conseguir          ##
+# ##   explicar a sua parte separadamente na apresentação.               ##
+# ##########################################################################
+from consulta_auditoria import menu_auditoria      # Req. 4
+from maquinas import mostrar_maquinas_compartilhadas  # Req. 3
+from relatorio import mostrar_relatorio            # Req. 6 (+ exportação)
+from simulacao import menu_simulacao               # Req. 7
+
 
 def preparar_arquivos():
     garantir_arquivo(ARQUIVO_USUARIOS, CAMPOS_USUARIO)
@@ -14,8 +25,16 @@ def preparar_arquivos():
     garantir_arquivo(ARQUIVO_BLOQUEADAS)
 
 
-def em_breve(funcionalidade):
-    print(f"\n{funcionalidade}: ainda em desenvolvimento.")
+# ##########################################################################
+# ##   >>> ALTERADO EM 18/11 — a função em_breve() foi substituída        ##
+# ##   O QUE FOI FEITO: as opções 3 a 6 deixaram de mostrar "em breve"    ##
+# ##   e agora chamam as funções novas.                                   ##
+# ##   POR QUÊ: executar_tela() limpa a tela, roda a função e pausa;      ##
+# ##   assim esse padrão não se repete em cada "elif".                    ##
+# ##########################################################################
+def executar_tela(funcao):
+    limpar_tela()
+    funcao()
     pausar()
 
 
@@ -25,10 +44,10 @@ def mostrar_menu():
     print("=" * 52)
     print("1. Usuários")
     print("2. Acessos")
-    print("3. Máquinas compartilhadas   (em breve)")
-    print("4. Log de auditoria          (em breve)")
-    print("5. Relatório de segurança    (em breve)")
-    print("6. Funcionalidade extra      (em breve)")
+    print("3. Máquinas compartilhadas")
+    print("4. Log de auditoria")
+    print("5. Relatório de segurança")
+    print("6. Simulação de acessos (extra)")
     print("7. Assistente de IA")
     print("0. Sair")
 
@@ -46,13 +65,13 @@ def main():
         elif opcao == "2":
             menu_acessos()
         elif opcao == "3":
-            em_breve("Detecção de máquinas compartilhadas")
+            executar_tela(mostrar_maquinas_compartilhadas)   # NOVO — Req. 3
         elif opcao == "4":
-            em_breve("Consulta do log de auditoria")
+            menu_auditoria()                                 # NOVO — Req. 4
         elif opcao == "5":
-            em_breve("Relatório de segurança")
+            executar_tela(mostrar_relatorio)                 # NOVO — Req. 6
         elif opcao == "6":
-            em_breve("Funcionalidade extra")
+            executar_tela(menu_simulacao)                    # NOVO — Req. 7
         elif opcao == "7":
             menu_assistente_ia()
 
